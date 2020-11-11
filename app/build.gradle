@@ -18,8 +18,20 @@ android {
 
     buildTypes {
         release {
+            debuggable false
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+
+            buildConfigField("String", 'API_KEY', '"1e02892c81d75e672044fba36269d116"')
+            buildConfigField("String", 'PRIVATE_KEY', '"40f4345ead72862b20d7616680fef9ff1a26460b"')
+        }
+
+        debug {
+            debuggable true
+            minifyEnabled false
+
+            buildConfigField("String", 'API_KEY', '"1e02892c81d75e672044fba36269d116"')
+            buildConfigField("String", 'PRIVATE_KEY', '"40f4345ead72862b20d7616680fef9ff1a26460b"')
         }
     }
 
@@ -34,4 +46,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
+
+    implementation 'com.android.volley:volley:1.1.1'
+
 }
