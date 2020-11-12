@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <dimen name="character_list_item_padding">12dp</dimen>
+
+    <!--Text Sizes-->
+    <dimen name="character_list_text_size">16sp</dimen>
+    <dimen name="character_detail_name_size">22sp</dimen>
+</resources>

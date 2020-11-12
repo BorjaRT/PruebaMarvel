@@ -1,6 +1,8 @@
-package com.prueba.marvel
+package com.prueba.marvel.activities
 
+import android.content.Intent
 import android.os.Bundle
+import android.provider.SyncStateContract
 import android.widget.Button
 import android.widget.EditText
 import android.widget.TextView
@@ -10,6 +12,9 @@ import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.google.gson.Gson
+import com.prueba.marvel.BuildConfig
+import com.prueba.marvel.R
+import com.prueba.marvel.model.Constants
 import com.prueba.marvel.model.responses.CharacterRequestResponse
 import java.security.MessageDigest
 
@@ -23,7 +28,9 @@ class MainActivity : AppCompatActivity() {
         val btnListRequest = findViewById<Button>(R.id.btn_list_request)
         btnListRequest.setOnClickListener { characterListRequest() }
         val btnCharacterRequest = findViewById<Button>(R.id.btn_character_request)
-        btnCharacterRequest.setOnClickListener { characterRequest(findViewById<EditText>(R.id.et_name).text.toString()) }
+        btnCharacterRequest.setOnClickListener { characterRequest(findViewById<EditText>(
+            R.id.et_name
+        ).text.toString()) }
     }
 
     private fun characterListRequest() {
@@ -33,7 +40,10 @@ class MainActivity : AppCompatActivity() {
 
         baseUrl = baseUrl + "ts=1&" +
                 "apikey=" + BuildConfig.API_KEY +
-                "&hash=" + calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
+                "&hash=" + calculateHash("1",
+            BuildConfig.API_KEY,
+            BuildConfig.PRIVATE_KEY
+        )
 
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
             response ->  processResponse(response)
@@ -53,10 +63,13 @@ class MainActivity : AppCompatActivity() {
 
         baseUrl = baseUrl + "ts=1&" +
                 "apikey=" + BuildConfig.API_KEY +
-                "&hash=" + calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
+                "&hash=" + calculateHash("1",
+            BuildConfig.API_KEY,
+            BuildConfig.PRIVATE_KEY
+        )
 
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
-                response ->  processResponse(response)
+                response ->  onCharacterResponse(response)
         },
             Response.ErrorListener {
                 requestError(it.networkResponse.statusCode)
@@ -71,6 +84,14 @@ class MainActivity : AppCompatActivity() {
         val responseObject = Gson().fromJson(response, CharacterRequestResponse::class.java)
         val textView = findViewById<TextView>(R.id.tv_result)
         textView.text = responseObject.toJSONString()
+    }
+
+    private fun onCharacterResponse(response: String){
+        val responseObject = Gson().fromJson(response, CharacterRequestResponse::class.java)
+
+        val intent = Intent(this@MainActivity, CharacterActivity::class.java)
+        intent.putExtra(Constants.EXTRA_CHARACTER, responseObject.data.results[0])
+        startActivity(intent)
     }
 
     private fun requestError(statusCode: Int){
