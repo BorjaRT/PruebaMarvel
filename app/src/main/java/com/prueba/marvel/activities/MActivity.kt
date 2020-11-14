@@ -2,12 +2,10 @@ package com.prueba.marvel.activities
 
 import android.content.Intent
 import android.os.Bundle
-import android.view.LayoutInflater
+import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
@@ -15,21 +13,22 @@ import com.android.volley.toolbox.Volley
 import com.google.gson.Gson
 import com.prueba.marvel.BuildConfig
 import com.prueba.marvel.R
-import com.prueba.marvel.adapters.CharacterListAdapter
-import com.prueba.marvel.interfaces.CharacterListListener
 import com.prueba.marvel.model.Constants
 import com.prueba.marvel.model.responses.CharacterRequestResponse
 import java.security.MessageDigest
 
-
-class MainActivity : AppCompatActivity(), CharacterListListener {
+class MActivity  : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        characterListRequest()
-
+        val btnListRequest = findViewById<Button>(R.id.btn_list_request)
+        btnListRequest.setOnClickListener { characterListRequest() }
+        val btnCharacterRequest = findViewById<Button>(R.id.btn_character_request)
+        btnCharacterRequest.setOnClickListener { characterRequest(findViewById<EditText>(
+            R.id.et_name
+        ).text.toString()) }
     }
 
     private fun characterListRequest() {
@@ -44,8 +43,9 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             BuildConfig.PRIVATE_KEY
         )
 
-        val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
-            response ->  processResponse(response)
+        val stringRequest = StringRequest(
+            Request.Method.GET, baseUrl, Response.Listener<String> {
+                response ->  processResponse(response)
         },
             Response.ErrorListener {
                 requestError(it.networkResponse.statusCode)
@@ -67,7 +67,8 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             BuildConfig.PRIVATE_KEY
         )
 
-        val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
+        val stringRequest = StringRequest(
+            Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  onCharacterResponse(response)
         },
             Response.ErrorListener {
@@ -81,21 +82,14 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     private fun processResponse(response: String){
 
         val responseObject = Gson().fromJson(response, CharacterRequestResponse::class.java)
-        val characterListAdapter = CharacterListAdapter(responseObject.data.results, LayoutInflater.from(this), this)
-        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
-        var rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
-        rvCharacters.layoutManager = layoutManager
-        rvCharacters.adapter = characterListAdapter
-
-
-//        val textView = findViewById<TextView>(R.id.tv_result)
-//        textView.text = responseObject.toJSONString()
+        val textView = findViewById<TextView>(R.id.tv_result)
+        textView.text = responseObject.toJSONString()
     }
 
     private fun onCharacterResponse(response: String){
         val responseObject = Gson().fromJson(response, CharacterRequestResponse::class.java)
 
-        val intent = Intent(this@MainActivity, CharacterActivity::class.java)
+        val intent = Intent(this@MActivity, CharacterActivity::class.java)
         intent.putExtra(Constants.EXTRA_CHARACTER, responseObject.data.results[0])
         startActivity(intent)
     }
@@ -113,9 +107,5 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         return digest.joinToString("") {
             "%02x".format(it)
         }
-    }
-
-    override fun onCharacterSelected(characterId: String?) {
-        Toast.makeText(this, characterId, Toast.LENGTH_SHORT).show()
     }
 }
