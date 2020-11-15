@@ -10,9 +10,11 @@ import com.prueba.marvel.model.responses.CharacterRequestResponse
 class MarvelViewModel : ViewModel() {
 
     var mutableCharacterList: MutableLiveData<ArrayList<CharacterResult>>? = null
+    var characterDetail: MutableLiveData<CharacterResult>? = null
 
     fun init() {
         mutableCharacterList = MutableLiveData()
+        characterDetail = MutableLiveData()
     }
 
     fun processCharacterListResponse(response: String){
@@ -20,5 +22,8 @@ class MarvelViewModel : ViewModel() {
         mutableCharacterList!!.value = responseObject.data.results
     }
 
-
+    fun processCharacterDetailResponse(response: String){
+        val responseObject = Gson().fromJson(response, CharacterRequestResponse::class.java)
+        characterDetail!!.value = responseObject.data.results[0]
+    }
 }

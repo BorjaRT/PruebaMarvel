@@ -1,9 +1,7 @@
 package com.prueba.marvel.activities
 
-import android.content.Intent
 import android.os.Bundle
 import android.view.LayoutInflater
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Observer
@@ -14,16 +12,15 @@ import com.android.volley.Request
 import com.android.volley.Response
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
-import com.google.gson.Gson
 import com.prueba.marvel.BuildConfig
 import com.prueba.marvel.R
 import com.prueba.marvel.adapters.CharacterListAdapter
 import com.prueba.marvel.data.MarvelViewModel
+import com.prueba.marvel.fragments.CharacterDetailFragment
 import com.prueba.marvel.interfaces.CharacterListListener
 import com.prueba.marvel.model.CharacterResult
-import com.prueba.marvel.model.Constants
+import com.prueba.marvel.model.Constants.Companion.CHARACTER_DETAIL_REQUEST
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_REQUEST
-import com.prueba.marvel.model.responses.CharacterRequestResponse
 import java.security.MessageDigest
 
 
@@ -50,7 +47,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             characterList
             , LayoutInflater.from(applicationContext), this@MainActivity)
         val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
-        var rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
+        val rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
         rvCharacters.layoutManager = layoutManager
         rvCharacters.adapter = characterListAdapter
     }
@@ -59,7 +56,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
 
         val queue = Volley.newRequestQueue(this)
 
-        var baseUrl = String.format(
+        val baseUrl = String.format(
             CHARACTER_LIST_REQUEST, "1", BuildConfig.API_KEY
             , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
         )
@@ -78,13 +75,10 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     private fun characterRequest(characterId: String){
 
         val queue = Volley.newRequestQueue(this)
-        var baseUrl = "https://gateway.marvel.com:443/v1/public/characters/" + characterId + "?"
 
-        baseUrl = baseUrl + "ts=1&" +
-                "apikey=" + BuildConfig.API_KEY +
-                "&hash=" + calculateHash("1",
-            BuildConfig.API_KEY,
-            BuildConfig.PRIVATE_KEY
+        val baseUrl = String.format(
+            CHARACTER_DETAIL_REQUEST, characterId, "1", BuildConfig.API_KEY
+            , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
         )
 
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
@@ -98,28 +92,21 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         queue.add(stringRequest)
     }
 
-
-
-//    private fun processResponse(response: String){
-//
-//        val responseObject = Gson().fromJson(response, CharacterRequestResponse::class.java)
-//        val characterListAdapter = CharacterListAdapter(responseObject.data.results, LayoutInflater.from(this), this)
-//        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
-//        var rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
-//        rvCharacters.layoutManager = layoutManager
-//        rvCharacters.adapter = characterListAdapter
-//    }
-
     private fun onCharacterResponse(response: String){
-        val responseObject = Gson().fromJson(response, CharacterRequestResponse::class.java)
 
-        val intent = Intent(this@MainActivity, CharacterActivity::class.java)
-        intent.putExtra(Constants.EXTRA_CHARACTER, responseObject.data.results[0])
-        startActivity(intent)
+        viewModel.processCharacterDetailResponse(response)
+
+        val fragmentManager = supportFragmentManager
+        val fragmentTransaction = fragmentManager.beginTransaction()
+
+        val fragment = CharacterDetailFragment(viewModel)
+        fragmentTransaction.add(R.id.fl_detail, fragment)
+        fragmentTransaction.addToBackStack(null)
+        fragmentTransaction.commit()
     }
 
     private fun requestError(statusCode: Int){
-        findViewById<TextView>(R.id.tv_result).text = "ERROR:" + statusCode
+        Toast.makeText(this, "ERROR:" + statusCode, Toast.LENGTH_SHORT).show()
     }
 
     private fun calculateHash(timestamp: String, publicKey: String, privateKey: String): String {
@@ -134,6 +121,6 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     }
 
     override fun onCharacterSelected(characterId: String?) {
-        Toast.makeText(this, characterId, Toast.LENGTH_SHORT).show()
+        characterRequest(characterId!!)
     }
 }
