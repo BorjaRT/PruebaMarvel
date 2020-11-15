@@ -2,9 +2,20 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:paddingTop="4dp"
     android:background="@android:color/white"
     xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <androidx.core.widget.ContentLoadingProgressBar
+        android:id="@+id/pb_progress_bar"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        android:visibility="visible"
+        android:indeterminate="true"
+        />
 
     <TextView
         android:id="@+id/tv_name"
@@ -17,7 +28,8 @@
         android:textColor="@color/grey"
         android:textSize="@dimen/character_detail_name_size"
         android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"/>
+        android:layout_marginRight="4dp"
+        android:layout_marginTop="4dp"/>
 
     <View
         android:layout_width="match_parent"
@@ -52,7 +64,8 @@
             <TextView
                 android:id="@+id/tv_description_header"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"/>
+                android:layout_height="wrap_content"
+                android:text="@string/character_description_header"/>
 
             <TextView
                 android:id="@+id/tv_description"

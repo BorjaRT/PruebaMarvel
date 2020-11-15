@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.widget.ContentLoadingProgressBar
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders.of
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -20,17 +21,22 @@ import com.prueba.marvel.fragments.CharacterDetailFragment
 import com.prueba.marvel.interfaces.CharacterListListener
 import com.prueba.marvel.model.CharacterResult
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_DETAIL_REQUEST
-import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_REQUEST
+import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_INITIAL_REQUEST
+import com.prueba.marvel.model.Constants.Companion.LIST_REQUEST_STARTING_LIMIT
 import java.security.MessageDigest
 
 
 class MainActivity : AppCompatActivity(), CharacterListListener {
 
     lateinit var viewModel : MarvelViewModel
+    lateinit var progressBar: ContentLoadingProgressBar
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        progressBar = findViewById(R.id.pb_progress_bar)
+        progressBar.show()
 
         viewModel = of(this).get(MarvelViewModel::class.java)
         viewModel.init()
@@ -50,6 +56,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         val rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
         rvCharacters.layoutManager = layoutManager
         rvCharacters.adapter = characterListAdapter
+        progressBar.hide()
     }
 
     private fun characterListRequest() {
@@ -57,8 +64,9 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         val queue = Volley.newRequestQueue(this)
 
         val baseUrl = String.format(
-            CHARACTER_LIST_REQUEST, "1", BuildConfig.API_KEY
+            CHARACTER_LIST_INITIAL_REQUEST, "1", BuildConfig.API_KEY
             , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
+            , LIST_REQUEST_STARTING_LIMIT.toString()
         )
 
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {

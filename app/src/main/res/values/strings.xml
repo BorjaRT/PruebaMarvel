@@ -2,4 +2,6 @@
     <string name="app_name">Marvel</string>
 
     <string name="hint_character_name">Character name</string>
+
+    <string name="character_description_header">DESCRIPCIÓN</string>
 </resources>
