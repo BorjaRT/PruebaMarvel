@@ -4,7 +4,7 @@
     <string name="hint_character_name">Character name</string>
 
     <string name="character_description_header">DESCRIPCIÓN</string>
-    <string name="character_comics_header">CÓMICS</string>
+    <string name="character_comics_header">CÓMICS E HISTORIAS</string>
     <string name="character_series_header">SERIES</string>
     <string name="character_stories_header">HISTORIAS</string>
     <string name="character_events_header">EVENTOS</string>
