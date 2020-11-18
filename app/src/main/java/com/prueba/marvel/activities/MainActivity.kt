@@ -1,9 +1,12 @@
 package com.prueba.marvel.activities
 
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import android.view.*
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.ContentLoadingProgressBar
@@ -40,6 +43,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
 
     var filterAvailable = false
     var filtered = false
+    var loading = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,10 +59,13 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle item selection
         return when (item.itemId) {
             R.id.action_filter -> {
-                if(filterAvailable) showFilterPanel()
+                if(filterAvailable && findViewById<RelativeLayout>(R.id.ly_filter).visibility == View.GONE) {
+                    showFilterPanel()
+                }else{
+                    hideFilterPanel()
+                }
                 true
             }
             R.id.action_search -> {
@@ -67,39 +74,6 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             }
             else -> super.onOptionsItemSelected(item)
         }
-    }
-
-    private fun loadCharacters(characterList : ArrayList<CharacterResult>) {
-        characterListAdapter = CharacterListAdapter(characterList
-            , LayoutInflater.from(applicationContext), this@MainActivity)
-        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
-//        val rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
-        rvCharacters.layoutManager = layoutManager
-        rvCharacters.adapter = characterListAdapter
-
-        if(viewModel.currentOffset !=  LIST_REQUEST_STARTING_LIMIT){
-            rvCharacters.scrollToPosition(viewModel.currentOffset-LIST_REQUEST_OVERSCROLL_LIMIT)
-        }
-
-        rvCharacters.addOnScrollListener(object : RecyclerView.OnScrollListener(){
-            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-
-                if(dy > 0) //check for scroll down
-                {
-                    var visibleItemCount = recyclerView.layoutManager!!.childCount
-                    var totalItemCount = recyclerView.layoutManager!!.itemCount
-                    var pastVisibleItems = (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
-
-                    if ( (visibleItemCount + pastVisibleItems) >= totalItemCount) {
-                        Toast.makeText(applicationContext, "end", Toast.LENGTH_SHORT).show()
-                        loadMoreCharacters()
-                    }
-                }
-            }
-        })
-
-        filterAvailable = true
-        progressBar.hide()
     }
 
     private fun characterListRequest() {
@@ -112,6 +86,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             , LIST_REQUEST_STARTING_LIMIT.toString()
         )
 
+        Log.i("MARVEL-REQUEST", baseUrl)
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  viewModel.processCharacterListResponse(response, this)
         },
@@ -133,7 +108,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
             , LIST_REQUEST_OVERSCROLL_LIMIT.toString(), viewModel.currentOffset.toString()
         )
-
+        Log.i("MARVEL-REQUEST", baseUrl)
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  viewModel.processCharacterListResponse(response, this)
         },
@@ -205,20 +180,30 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         rvCharacters.adapter = characterListAdapter
         (rvCharacters.adapter as CharacterListAdapter).notifyDataSetChanged()
         if(viewModel.currentOffset > LIST_REQUEST_STARTING_LIMIT) {
-            rvCharacters.scrollToPosition(viewModel.scrollItemCount)
+            rvCharacters.scrollToPosition(viewModel.scrollItemCount - 1)
         }
         progressBar.hide()
         filterAvailable = true
+        loading = false
     }
 
     private fun showFilterPanel(){
         findViewById<RelativeLayout>(R.id.ly_filter).visibility = View.VISIBLE
         findViewById<EditText>(R.id.et_filter_input).requestFocus()
-        findViewById<ImageView>(R.id.b_close).setOnClickListener { hideFilterPanel() }
+        findViewById<ImageView>(R.id.b_close).setOnClickListener {
+            findViewById<EditText>(R.id.et_filter_input).text.clear()
+        }
+        val imm: InputMethodManager =
+            getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.showSoftInput(findViewById<EditText>(R.id.et_filter_input)
+            , InputMethodManager.SHOW_IMPLICIT)
     }
 
     private fun hideFilterPanel(){
         findViewById<RelativeLayout>(R.id.ly_filter).visibility = View.GONE
+        val imm =
+            getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(findViewById<EditText>(R.id.et_filter_input).windowToken, 0)
     }
 
     private fun initUI(){
@@ -234,7 +219,9 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
                     val totalItemCount = recyclerView.layoutManager!!.itemCount
                     val pastVisibleItems = (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
 
-                    if ( (visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                    if ( (visibleItemCount + pastVisibleItems) >= totalItemCount && !loading) {
+                        progressBar.show()
+                        loading = true
                         filterAvailable = false
                         loadMoreCharacters()
                     }
@@ -268,13 +255,12 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     }
 
     private fun filterList(filterString: String) {
-//        var filterString = filterString
-//        filterString = filterString.toLowerCase(Locale.getDefault())
         if (filterString.isNotEmpty()) {
             filtered = true
             viewModel.filteredCharacterList = ArrayList<CharacterResult>()
             for (character in viewModel.characterList!!) {
-                if (character.name!!.toLowerCase(Locale.getDefault()).contains(filterString.toLowerCase(Locale.getDefault()))) {
+                if (character.name!!.toLowerCase(Locale.getDefault())
+                        .contains(filterString.toLowerCase(Locale.getDefault()))) {
                     viewModel.filteredCharacterList.add(character)
                 }
             }

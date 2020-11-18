@@ -24,8 +24,7 @@
         android:id="@+id/iv_chevron"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/ic_chevron_right"
-        app:tint="@color/colorPrimary"
+        android:src="@drawable/ic_chevron_red"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
