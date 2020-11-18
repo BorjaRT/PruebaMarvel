@@ -7,7 +7,6 @@ import android.view.*
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.ContentLoadingProgressBar
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProviders.of
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -37,6 +36,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     lateinit var progressBar: ContentLoadingProgressBar
     lateinit var tvMessage: TextView
     lateinit var characterListAdapter: CharacterListAdapter
+    lateinit var rvCharacters: RecyclerView
 
     var filterAvailable = false
     var filtered = false
@@ -44,17 +44,8 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-
         initUI()
-
-        viewModel = of(this).get(MarvelViewModel::class.java)
-        viewModel.init()
-
-        viewModel.mutableCharacterList!!.observe(this, Observer<Any?> {
-            loadCharacters(viewModel.mutableCharacterList!!.value!!)
-        })
-
-        characterListRequest()
+        initData()
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -79,11 +70,10 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     }
 
     private fun loadCharacters(characterList : ArrayList<CharacterResult>) {
-        characterListAdapter = CharacterListAdapter(
-            characterList
+        characterListAdapter = CharacterListAdapter(characterList
             , LayoutInflater.from(applicationContext), this@MainActivity)
         val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
-        val rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
+//        val rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
         rvCharacters.layoutManager = layoutManager
         rvCharacters.adapter = characterListAdapter
 
@@ -123,7 +113,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         )
 
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
-                response ->  viewModel.processCharacterListResponse(response)
+                response ->  viewModel.processCharacterListResponse(response, this)
         },
             Response.ErrorListener {
                 requestError(it.networkResponse.statusCode)
@@ -145,7 +135,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         )
 
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
-                response ->  viewModel.processCharacterListResponse(response)
+                response ->  viewModel.processCharacterListResponse(response, this)
         },
             Response.ErrorListener {
                 requestError(it.networkResponse.statusCode)
@@ -207,6 +197,20 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         characterRequest(characterId!!)
     }
 
+    override fun onCharactersLoaded() {
+        characterListAdapter = CharacterListAdapter(viewModel.characterList!!
+            , LayoutInflater.from(applicationContext), this@MainActivity)
+        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
+        rvCharacters.layoutManager = layoutManager
+        rvCharacters.adapter = characterListAdapter
+        (rvCharacters.adapter as CharacterListAdapter).notifyDataSetChanged()
+        if(viewModel.currentOffset > LIST_REQUEST_STARTING_LIMIT) {
+            rvCharacters.scrollToPosition(viewModel.scrollItemCount)
+        }
+        progressBar.hide()
+        filterAvailable = true
+    }
+
     private fun showFilterPanel(){
         findViewById<RelativeLayout>(R.id.ly_filter).visibility = View.VISIBLE
         findViewById<EditText>(R.id.et_filter_input).requestFocus()
@@ -219,7 +223,24 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
 
     private fun initUI(){
         progressBar = findViewById(R.id.pb_progress_bar)
-        progressBar.show()
+
+        rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
+        rvCharacters.addOnScrollListener(object : RecyclerView.OnScrollListener(){
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+
+                if(dy > 0) //check for scroll down
+                {
+                    val visibleItemCount = recyclerView.layoutManager!!.childCount
+                    val totalItemCount = recyclerView.layoutManager!!.itemCount
+                    val pastVisibleItems = (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+
+                    if ( (visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                        filterAvailable = false
+                        loadMoreCharacters()
+                    }
+                }
+            }
+        })
 
         tvMessage = findViewById(R.id.tv_message)
 
@@ -247,19 +268,19 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     }
 
     private fun filterList(filterString: String) {
-        var filterString = filterString
-        filterString = filterString.toLowerCase(Locale.getDefault())
+//        var filterString = filterString
+//        filterString = filterString.toLowerCase(Locale.getDefault())
         if (filterString.isNotEmpty()) {
             filtered = true
             viewModel.filteredCharacterList = ArrayList<CharacterResult>()
-            for (character in viewModel.mutableCharacterList!!.value!!) {
-                if (character.name!!.toLowerCase(Locale.getDefault()).contains(filterString)) {
+            for (character in viewModel.characterList!!) {
+                if (character.name!!.toLowerCase(Locale.getDefault()).contains(filterString.toLowerCase(Locale.getDefault()))) {
                     viewModel.filteredCharacterList.add(character)
                 }
             }
         } else {
             filtered = false
-            viewModel.filteredCharacterList = viewModel.mutableCharacterList!!.value!!
+            viewModel.filteredCharacterList = viewModel.characterList!!
         }
         updateFilterResults()
     }
@@ -273,5 +294,13 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         }else{
             findViewById<TextView>(R.id.tv_message).visibility = View.GONE
         }
+    }
+
+    private fun initData(){
+        progressBar.show()
+        viewModel = of(this).get(MarvelViewModel::class.java)
+        viewModel.init()
+
+        characterListRequest()
     }
 }
