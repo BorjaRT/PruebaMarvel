@@ -24,6 +24,8 @@ import com.prueba.marvel.interfaces.CharacterListListener
 import com.prueba.marvel.model.CharacterResult
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_DETAIL_REQUEST
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_INITIAL_REQUEST
+import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_REQUEST
+import com.prueba.marvel.model.Constants.Companion.LIST_REQUEST_OVERSCROLL_LIMIT
 import com.prueba.marvel.model.Constants.Companion.LIST_REQUEST_STARTING_LIMIT
 import java.security.MessageDigest
 import java.util.*
@@ -37,6 +39,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     lateinit var characterListAdapter: CharacterListAdapter
 
     var filterAvailable = false
+    var filtered = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,6 +86,28 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         val rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
         rvCharacters.layoutManager = layoutManager
         rvCharacters.adapter = characterListAdapter
+
+        if(viewModel.currentOffset !=  LIST_REQUEST_STARTING_LIMIT){
+            rvCharacters.scrollToPosition(viewModel.currentOffset-LIST_REQUEST_OVERSCROLL_LIMIT)
+        }
+
+        rvCharacters.addOnScrollListener(object : RecyclerView.OnScrollListener(){
+            override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
+
+                if(dy > 0) //check for scroll down
+                {
+                    var visibleItemCount = recyclerView.layoutManager!!.childCount
+                    var totalItemCount = recyclerView.layoutManager!!.itemCount
+                    var pastVisibleItems = (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+
+                    if ( (visibleItemCount + pastVisibleItems) >= totalItemCount) {
+                        Toast.makeText(applicationContext, "end", Toast.LENGTH_SHORT).show()
+                        loadMoreCharacters()
+                    }
+                }
+            }
+        })
+
         filterAvailable = true
         progressBar.hide()
     }
@@ -95,6 +120,28 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             CHARACTER_LIST_INITIAL_REQUEST, "1", BuildConfig.API_KEY
             , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
             , LIST_REQUEST_STARTING_LIMIT.toString()
+        )
+
+        val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
+                response ->  viewModel.processCharacterListResponse(response)
+        },
+            Response.ErrorListener {
+                requestError(it.networkResponse.statusCode)
+            }
+        )
+
+        queue.add(stringRequest)
+    }
+
+    private fun loadMoreCharacters(){
+        progressBar.show()
+
+        val queue = Volley.newRequestQueue(this)
+
+        val baseUrl = String.format(
+            CHARACTER_LIST_REQUEST, "1", BuildConfig.API_KEY
+            , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
+            , LIST_REQUEST_OVERSCROLL_LIMIT.toString(), viewModel.currentOffset.toString()
         )
 
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
@@ -203,6 +250,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         var filterString = filterString
         filterString = filterString.toLowerCase(Locale.getDefault())
         if (filterString.isNotEmpty()) {
+            filtered = true
             viewModel.filteredCharacterList = ArrayList<CharacterResult>()
             for (character in viewModel.mutableCharacterList!!.value!!) {
                 if (character.name!!.toLowerCase(Locale.getDefault()).contains(filterString)) {
@@ -210,6 +258,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
                 }
             }
         } else {
+            filtered = false
             viewModel.filteredCharacterList = viewModel.mutableCharacterList!!.value!!
         }
         updateFilterResults()

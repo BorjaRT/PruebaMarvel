@@ -17,6 +17,7 @@
         android:layout_alignParentLeft="true"
         android:layout_toLeftOf="@+id/b_close"
         android:paddingLeft="4dp"
+        android:layout_marginLeft="4dp"
         android:layout_centerVertical="true"
         android:hint="@string/hint_filter"
         android:background="@android:color/white"

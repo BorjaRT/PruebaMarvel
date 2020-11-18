@@ -13,7 +13,7 @@ class MarvelViewModel : ViewModel() {
     var mutableCharacterList: MutableLiveData<ArrayList<CharacterResult>>? = null
     var characterDetail: MutableLiveData<CharacterResult>? = null
     lateinit var filteredCharacterList: ArrayList<CharacterResult>
-    val currentOffset: Int = 0
+    var currentOffset: Int = 0
 
     fun init() {
         mutableCharacterList = MutableLiveData()
@@ -22,7 +22,16 @@ class MarvelViewModel : ViewModel() {
 
     fun processCharacterListResponse(response: String){
         val responseObject = Gson().fromJson(response, CharacterRequestResponse::class.java)
-        mutableCharacterList!!.value = responseObject.data.results
+        if(currentOffset == 0){
+            mutableCharacterList!!.value = responseObject.data.results
+        }else{
+            var characters = mutableCharacterList!!.value
+            characters!!.addAll(responseObject.data.results)
+            mutableCharacterList!!.value = characters
+
+//            mutableCharacterList!!.value!!.addAll(responseObject.data.results)
+        }
+        currentOffset = mutableCharacterList!!.value!!.size
     }
 
     fun processCharacterDetailResponse(response: String){
