@@ -1,8 +1,10 @@
 package com.prueba.marvel.activities
 
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.widget.Toast
+import android.text.Editable
+import android.text.TextWatcher
+import android.view.*
+import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.ContentLoadingProgressBar
 import androidx.lifecycle.Observer
@@ -24,19 +26,23 @@ import com.prueba.marvel.model.Constants.Companion.CHARACTER_DETAIL_REQUEST
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_INITIAL_REQUEST
 import com.prueba.marvel.model.Constants.Companion.LIST_REQUEST_STARTING_LIMIT
 import java.security.MessageDigest
+import java.util.*
 
 
 class MainActivity : AppCompatActivity(), CharacterListListener {
 
     lateinit var viewModel : MarvelViewModel
     lateinit var progressBar: ContentLoadingProgressBar
+    lateinit var tvMessage: TextView
+    lateinit var characterListAdapter: CharacterListAdapter
+
+    var filterAvailable = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        progressBar = findViewById(R.id.pb_progress_bar)
-        progressBar.show()
+        initUI()
 
         viewModel = of(this).get(MarvelViewModel::class.java)
         viewModel.init()
@@ -48,14 +54,36 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         characterListRequest()
     }
 
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
+        val inflater: MenuInflater = menuInflater
+        inflater.inflate(R.menu.main_menu, menu)
+        return true
+    }
+
+    override fun onOptionsItemSelected(item: MenuItem): Boolean {
+        // Handle item selection
+        return when (item.itemId) {
+            R.id.action_filter -> {
+                if(filterAvailable) showFilterPanel()
+                true
+            }
+            R.id.action_search -> {
+                //TODO
+                true
+            }
+            else -> super.onOptionsItemSelected(item)
+        }
+    }
+
     private fun loadCharacters(characterList : ArrayList<CharacterResult>) {
-        val characterListAdapter = CharacterListAdapter(
+        characterListAdapter = CharacterListAdapter(
             characterList
             , LayoutInflater.from(applicationContext), this@MainActivity)
         val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
         val rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
         rvCharacters.layoutManager = layoutManager
         rvCharacters.adapter = characterListAdapter
+        filterAvailable = true
         progressBar.hide()
     }
 
@@ -130,5 +158,71 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
 
     override fun onCharacterSelected(characterId: String?) {
         characterRequest(characterId!!)
+    }
+
+    private fun showFilterPanel(){
+        findViewById<RelativeLayout>(R.id.ly_filter).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.et_filter_input).requestFocus()
+        findViewById<ImageView>(R.id.b_close).setOnClickListener { hideFilterPanel() }
+    }
+
+    private fun hideFilterPanel(){
+        findViewById<RelativeLayout>(R.id.ly_filter).visibility = View.GONE
+    }
+
+    private fun initUI(){
+        progressBar = findViewById(R.id.pb_progress_bar)
+        progressBar.show()
+
+        tvMessage = findViewById(R.id.tv_message)
+
+        findViewById<EditText>(R.id.et_filter_input).addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(
+                s: CharSequence,
+                start: Int,
+                count: Int,
+                after: Int
+            ) {
+            }
+
+            override fun onTextChanged(
+                s: CharSequence,
+                start: Int,
+                before: Int,
+                count: Int
+            ) {
+            }
+
+            override fun afterTextChanged(s: Editable) {
+                if (filterAvailable) filterList(s.toString())
+            }
+        })
+    }
+
+    private fun filterList(filterString: String) {
+        var filterString = filterString
+        filterString = filterString.toLowerCase(Locale.getDefault())
+        if (filterString.isNotEmpty()) {
+            viewModel.filteredCharacterList = ArrayList<CharacterResult>()
+            for (character in viewModel.mutableCharacterList!!.value!!) {
+                if (character.name!!.toLowerCase(Locale.getDefault()).contains(filterString)) {
+                    viewModel.filteredCharacterList.add(character)
+                }
+            }
+        } else {
+            viewModel.filteredCharacterList = viewModel.mutableCharacterList!!.value!!
+        }
+        updateFilterResults()
+    }
+
+    private fun updateFilterResults() {
+        characterListAdapter.characters = viewModel.filteredCharacterList
+        characterListAdapter.notifyDataSetChanged()
+        if(viewModel.filteredCharacterList.isNullOrEmpty()){
+            findViewById<TextView>(R.id.tv_message).text = getString(R.string.message_no_filter)
+            findViewById<TextView>(R.id.tv_message).visibility = View.VISIBLE
+        }else{
+            findViewById<TextView>(R.id.tv_message).visibility = View.GONE
+        }
     }
 }

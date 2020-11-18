@@ -12,6 +12,7 @@ class MarvelViewModel : ViewModel() {
 
     var mutableCharacterList: MutableLiveData<ArrayList<CharacterResult>>? = null
     var characterDetail: MutableLiveData<CharacterResult>? = null
+    lateinit var filteredCharacterList: ArrayList<CharacterResult>
     val currentOffset: Int = 0
 
     fun init() {
