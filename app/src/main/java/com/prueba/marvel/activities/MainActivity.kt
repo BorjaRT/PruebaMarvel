@@ -27,6 +27,7 @@ import com.prueba.marvel.model.CharacterResult
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_DETAIL_REQUEST
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_INITIAL_REQUEST
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_REQUEST
+import com.prueba.marvel.model.Constants.Companion.CHARACTER_NAME_SEARCH_REQUEST
 import com.prueba.marvel.model.Constants.Companion.LIST_REQUEST_OVERSCROLL_LIMIT
 import com.prueba.marvel.model.Constants.Companion.LIST_REQUEST_STARTING_LIMIT
 import java.security.MessageDigest
@@ -63,13 +64,19 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             R.id.action_filter -> {
                 if(filterAvailable && findViewById<RelativeLayout>(R.id.ly_filter).visibility == View.GONE) {
                     showFilterPanel()
+                    hideSearchPanel()
                 }else{
                     hideFilterPanel()
                 }
                 true
             }
             R.id.action_search -> {
-                //TODO
+                if(findViewById<RelativeLayout>(R.id.ly_search).visibility == View.GONE) {
+                    showSearchPanel()
+                    hideFilterPanel()
+                }else{
+                    hideSearchPanel()
+                }
                 true
             }
             else -> super.onOptionsItemSelected(item)
@@ -121,6 +128,9 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     }
 
     private fun characterRequest(characterId: String){
+        loading = true
+        filterAvailable = false
+        progressBar.show()
 
         val queue = Volley.newRequestQueue(this)
 
@@ -151,10 +161,15 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         fragmentTransaction.add(R.id.fl_detail, fragment)
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
+
+        filterAvailable = true
+        loading = false
+        progressBar.hide()
     }
 
     private fun requestError(statusCode: Int){
         Toast.makeText(this, "ERROR:" + statusCode, Toast.LENGTH_SHORT).show()
+        progressBar.hide()
     }
 
     private fun calculateHash(timestamp: String, publicKey: String, privateKey: String): String {
@@ -187,10 +202,25 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         loading = false
     }
 
+    override fun onCharacterSearchComplete() {
+        characterListAdapter = CharacterListAdapter(viewModel.searchCharacterList!!
+            , LayoutInflater.from(applicationContext), this@MainActivity)
+        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
+        rvCharacters.layoutManager = layoutManager
+        rvCharacters.adapter = characterListAdapter
+        (rvCharacters.adapter as CharacterListAdapter).notifyDataSetChanged()
+        if(viewModel.currentOffset > LIST_REQUEST_STARTING_LIMIT) {
+            rvCharacters.scrollToPosition(viewModel.scrollItemCount - 1)
+        }
+        progressBar.hide()
+        filterAvailable = true
+        loading = false
+    }
+
     private fun showFilterPanel(){
         findViewById<RelativeLayout>(R.id.ly_filter).visibility = View.VISIBLE
         findViewById<EditText>(R.id.et_filter_input).requestFocus()
-        findViewById<ImageView>(R.id.b_close).setOnClickListener {
+        findViewById<ImageView>(R.id.b_clean).setOnClickListener {
             findViewById<EditText>(R.id.et_filter_input).text.clear()
         }
         val imm: InputMethodManager =
@@ -201,9 +231,32 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
 
     private fun hideFilterPanel(){
         findViewById<RelativeLayout>(R.id.ly_filter).visibility = View.GONE
-        val imm =
+        if(findViewById<RelativeLayout>(R.id.ly_search).visibility == View.GONE){
+            val imm =
+                getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(findViewById<EditText>(R.id.et_filter_input).windowToken, 0)
+        }
+    }
+
+    private fun showSearchPanel(){
+        findViewById<RelativeLayout>(R.id.ly_search).visibility = View.VISIBLE
+        findViewById<EditText>(R.id.et_search_input).requestFocus()
+        findViewById<ImageView>(R.id.b_search).setOnClickListener {
+            doSearch(findViewById<EditText>(R.id.et_search_input).editableText.toString())
+        }
+        val imm: InputMethodManager =
             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(findViewById<EditText>(R.id.et_filter_input).windowToken, 0)
+        imm.showSoftInput(findViewById<EditText>(R.id.et_search_input)
+            , InputMethodManager.SHOW_IMPLICIT)
+    }
+
+    private fun hideSearchPanel(){
+        findViewById<RelativeLayout>(R.id.ly_search).visibility = View.GONE
+        if(findViewById<RelativeLayout>(R.id.ly_filter).visibility == View.GONE){
+            val imm =
+                getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+            imm.hideSoftInputFromWindow(findViewById<EditText>(R.id.et_search_input).windowToken, 0)
+        }
     }
 
     private fun initUI(){
@@ -286,7 +339,30 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         progressBar.show()
         viewModel = of(this).get(MarvelViewModel::class.java)
         viewModel.init()
-
         characterListRequest()
+    }
+
+    private fun doSearch(searchString: String){
+        loading = true
+        filterAvailable = false
+        progressBar.show()
+
+        val queue = Volley.newRequestQueue(this)
+
+        val baseUrl = String.format(
+            CHARACTER_NAME_SEARCH_REQUEST, "1", BuildConfig.API_KEY
+            , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
+            , searchString
+        )
+        Log.i("MARVEL-REQUEST", baseUrl)
+        val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
+                response ->  viewModel.processCharacterNameSearchResponse(response, this)
+        },
+            Response.ErrorListener {
+                requestError(it.networkResponse.statusCode)
+            }
+        )
+
+        queue.add(stringRequest)
     }
 }

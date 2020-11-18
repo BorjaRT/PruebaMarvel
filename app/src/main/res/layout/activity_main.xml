@@ -7,11 +7,23 @@
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity">
 
-    <include
-        android:id="@+id/ly_filter"
-        layout="@layout/panel_filter"
-        android:visibility="gone"
-        />
+    <LinearLayout
+        android:id="@+id/ly_panels"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+        <include
+            android:id="@+id/ly_filter"
+            layout="@layout/panel_filter"
+            android:visibility="gone"
+            />
+
+        <include
+            android:id="@+id/ly_search"
+            layout="@layout/panel_search"
+            android:visibility="gone"
+            />
+    </LinearLayout>
 
     <androidx.core.widget.ContentLoadingProgressBar
         android:id="@+id/pb_progress_bar"
@@ -21,6 +33,7 @@
         android:layout_alignParentTop="true"
         android:visibility="visible"
         android:indeterminate="true"
+        android:layout_below="@+id/ly_panels"
         />
 
     <androidx.recyclerview.widget.RecyclerView
@@ -30,7 +43,7 @@
         android:layout_marginLeft="4dp"
         android:layout_marginRight="4dp"
         android:layout_marginTop="4dp"
-        android:layout_below="@+id/ly_filter"/>
+        android:layout_below="@+id/ly_panels"/>
 
     <FrameLayout
         android:id="@+id/fl_detail"

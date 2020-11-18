@@ -78,23 +78,10 @@ class CharacterDetailFragment : Fragment, CharacterListener {
         image.settings.useWideViewPort = true
         image.loadUrl(url)
 
-        fragmentView!!.findViewById<ContentLoadingProgressBar>(R.id.pb_progress_bar).hide()
+//        fragmentView!!.findViewById<ContentLoadingProgressBar>(R.id.pb_progress_bar).hide()
     }
 
     override fun onComicSelected(resource: String) {
         Toast.makeText(context, resource, Toast.LENGTH_SHORT).show()
     }
-
-    override fun onSeriesSelected(resource: String) {
-        Toast.makeText(context, resource, Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onEventSelected(resource: String) {
-        Toast.makeText(context, resource, Toast.LENGTH_SHORT).show()
-    }
-
-    override fun onStorySelected(resource: String) {
-        Toast.makeText(context, resource, Toast.LENGTH_SHORT).show()
-    }
-
 }

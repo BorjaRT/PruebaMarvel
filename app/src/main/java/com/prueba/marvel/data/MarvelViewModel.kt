@@ -14,6 +14,8 @@ class MarvelViewModel : ViewModel() {
     var characterList: ArrayList<CharacterResult>? = null
     var characterDetail: MutableLiveData<CharacterResult>? = null
     lateinit var filteredCharacterList: ArrayList<CharacterResult>
+    lateinit var searchCharacterList: ArrayList<CharacterResult>
+
     var currentOffset: Int = 0
     var totalCharacters: Int = 0
     var scrollItemCount: Int = 0
@@ -34,6 +36,12 @@ class MarvelViewModel : ViewModel() {
         }
         currentOffset = characterList!!.size
         listener.onCharactersLoaded()
+    }
+
+    fun processCharacterNameSearchResponse(response: String, listener: CharacterListListener){
+        val responseObject = Gson().fromJson(response, CharacterRequestResponse::class.java)
+        searchCharacterList = responseObject.data.results
+        listener.onCharacterSearchComplete()
     }
 
     fun processCharacterDetailResponse(response: String){

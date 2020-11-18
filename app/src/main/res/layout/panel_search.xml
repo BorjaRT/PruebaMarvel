@@ -10,22 +10,32 @@
     android:padding="5dp">
 
     <EditText
-        android:id="@+id/et_filter_input"
+        android:id="@+id/et_search_input"
         android:layout_width="match_parent"
         android:layout_height="40dp"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_alignParentLeft="true"
-        android:layout_toLeftOf="@+id/b_clean"
+        android:layout_toLeftOf="@+id/b_search"
         android:paddingLeft="4dp"
         android:layout_marginLeft="4dp"
         android:layout_centerVertical="true"
-        android:hint="@string/hint_filter"
+        android:hint="@string/hint_search"
         android:background="@android:color/white"
         tools:ignore="Autofill"
         android:inputType="textNoSuggestions" />
 
     <ImageView
-        android:id="@+id/b_clean"
+        android:id="@+id/b_search"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:src="@drawable/ic_search_white"
+        android:layout_toLeftOf="@+id/b_clear_search"
+        android:layout_centerVertical="true"
+        android:tint="@android:color/white"
+        android:layout_margin="5dp"/>
+
+    <ImageView
+        android:id="@+id/b_clear_search"
         android:layout_width="30dp"
         android:layout_height="30dp"
         android:src="@drawable/ic_close"

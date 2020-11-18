@@ -2,6 +2,7 @@
     <string name="app_name">Marvel</string>
 
     <string name="hint_filter">Filtrar por nombre</string>
+    <string name="hint_search">Buscar (inicio de nombre)</string>
 
     <string name="action_filter_label">Filtro</string>
     <string name="action_search_label">Buscar</string>
