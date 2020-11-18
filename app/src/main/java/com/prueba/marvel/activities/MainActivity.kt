@@ -27,6 +27,7 @@ import com.prueba.marvel.model.CharacterResult
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_DETAIL_REQUEST
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_INITIAL_REQUEST
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_REQUEST
+import com.prueba.marvel.model.Constants.Companion.CHARACTER_NAME_SEARCH_PAGE_REQUEST
 import com.prueba.marvel.model.Constants.Companion.CHARACTER_NAME_SEARCH_REQUEST
 import com.prueba.marvel.model.Constants.Companion.LIST_REQUEST_OVERSCROLL_LIMIT
 import com.prueba.marvel.model.Constants.Companion.LIST_REQUEST_STARTING_LIMIT
@@ -45,6 +46,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     var filterAvailable = false
     var filtered = false
     var loading = false
+    var searching = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -203,18 +205,23 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     }
 
     override fun onCharacterSearchComplete() {
-        characterListAdapter = CharacterListAdapter(viewModel.searchCharacterList!!
-            , LayoutInflater.from(applicationContext), this@MainActivity)
-        val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
-        rvCharacters.layoutManager = layoutManager
-        rvCharacters.adapter = characterListAdapter
-        (rvCharacters.adapter as CharacterListAdapter).notifyDataSetChanged()
-        if(viewModel.currentOffset > LIST_REQUEST_STARTING_LIMIT) {
-            rvCharacters.scrollToPosition(viewModel.scrollItemCount - 1)
+
+        if(viewModel.currentSearchOffset >= viewModel.totalSearchCharacters){
+            characterListAdapter = CharacterListAdapter(viewModel.searchCharacterList!!
+                , LayoutInflater.from(applicationContext), this@MainActivity)
+            val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
+            rvCharacters.layoutManager = layoutManager
+            rvCharacters.adapter = characterListAdapter
+            (rvCharacters.adapter as CharacterListAdapter).notifyDataSetChanged()
+            if(viewModel.currentOffset > LIST_REQUEST_STARTING_LIMIT) {
+                rvCharacters.scrollToPosition(viewModel.scrollItemCount - 1)
+            }
+            progressBar.hide()
+            filterAvailable = true
+            loading = false
+        }else{
+            doSearch(viewModel.searchString)
         }
-        progressBar.hide()
-        filterAvailable = true
-        loading = false
     }
 
     private fun showFilterPanel(){
@@ -266,13 +273,13 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         rvCharacters.addOnScrollListener(object : RecyclerView.OnScrollListener(){
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
 
-                if(dy > 0) //check for scroll down
+                if(dy > 0)
                 {
                     val visibleItemCount = recyclerView.layoutManager!!.childCount
                     val totalItemCount = recyclerView.layoutManager!!.itemCount
                     val pastVisibleItems = (recyclerView.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
 
-                    if ( (visibleItemCount + pastVisibleItems) >= totalItemCount && !loading) {
+                    if ( (visibleItemCount + pastVisibleItems) >= totalItemCount && !loading && !searching) {
                         progressBar.show()
                         loading = true
                         filterAvailable = false
@@ -343,17 +350,34 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     }
 
     private fun doSearch(searchString: String){
+        searching = true
+        viewModel.searchString = searchString
         loading = true
         filterAvailable = false
         progressBar.show()
 
+        if(viewModel.searchCharacterList.isNullOrEmpty()){
+            viewModel.totalSearchCharacters = 0
+            viewModel.currentSearchOffset = 0
+        }
+
         val queue = Volley.newRequestQueue(this)
 
-        val baseUrl = String.format(
-            CHARACTER_NAME_SEARCH_REQUEST, "1", BuildConfig.API_KEY
-            , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
-            , searchString
-        )
+        val baseUrl: String
+        if(viewModel.totalSearchCharacters == 0){
+            baseUrl = String.format(
+                CHARACTER_NAME_SEARCH_REQUEST, "1", BuildConfig.API_KEY
+                , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
+                , searchString
+            )
+        }else{
+            baseUrl = String.format(
+                CHARACTER_NAME_SEARCH_PAGE_REQUEST, "1", BuildConfig.API_KEY
+                , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
+                , viewModel.currentSearchOffset, searchString
+            )
+        }
+
         Log.i("MARVEL-REQUEST", baseUrl)
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  viewModel.processCharacterNameSearchResponse(response, this)

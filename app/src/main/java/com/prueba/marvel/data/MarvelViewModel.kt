@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
 import com.prueba.marvel.interfaces.CharacterListListener
 import com.prueba.marvel.model.CharacterResult
+import com.prueba.marvel.model.Constants.Companion.LIST_CALL_MAX_LIMIT
 import com.prueba.marvel.model.Item
 import com.prueba.marvel.model.responses.CharacterRequestResponse
 
@@ -14,11 +15,14 @@ class MarvelViewModel : ViewModel() {
     var characterList: ArrayList<CharacterResult>? = null
     var characterDetail: MutableLiveData<CharacterResult>? = null
     lateinit var filteredCharacterList: ArrayList<CharacterResult>
-    lateinit var searchCharacterList: ArrayList<CharacterResult>
+    var searchCharacterList: ArrayList<CharacterResult> = ArrayList<CharacterResult>()
 
     var currentOffset: Int = 0
     var totalCharacters: Int = 0
     var scrollItemCount: Int = 0
+    var totalSearchCharacters: Int = 0
+    var currentSearchOffset: Int = 0
+    lateinit var searchString: String
 
     fun init() {
 //        mutableCharacterList = MutableLiveData()
@@ -40,7 +44,13 @@ class MarvelViewModel : ViewModel() {
 
     fun processCharacterNameSearchResponse(response: String, listener: CharacterListListener){
         val responseObject = Gson().fromJson(response, CharacterRequestResponse::class.java)
-        searchCharacterList = responseObject.data.results
+        if(currentSearchOffset == 0){
+            searchCharacterList = responseObject.data.results
+            totalSearchCharacters = responseObject.data.total
+        }else{
+            searchCharacterList.addAll(responseObject.data.results)
+        }
+        currentSearchOffset += LIST_CALL_MAX_LIMIT
         listener.onCharacterSearchComplete()
     }
 
