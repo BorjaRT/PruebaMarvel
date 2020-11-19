@@ -7,7 +7,10 @@ import android.text.TextWatcher
 import android.util.Log
 import android.view.*
 import android.view.inputmethod.InputMethodManager
-import android.widget.*
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.RelativeLayout
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.widget.ContentLoadingProgressBar
 import androidx.lifecycle.ViewModelProviders.of
@@ -21,10 +24,6 @@ import com.google.android.material.snackbar.Snackbar
 import com.prueba.marvel.BuildConfig
 import com.prueba.marvel.R
 import com.prueba.marvel.adapters.CharacterListAdapter
-import com.prueba.marvel.data.MarvelViewModel
-import com.prueba.marvel.fragments.CharacterDetailFragment
-import com.prueba.marvel.interfaces.CharacterListListener
-import com.prueba.marvel.model.CharacterResult
 import com.prueba.marvel.data.Constants.Companion.CHARACTER_DETAIL_REQUEST
 import com.prueba.marvel.data.Constants.Companion.CHARACTER_LIST_INITIAL_REQUEST
 import com.prueba.marvel.data.Constants.Companion.CHARACTER_LIST_REQUEST
@@ -32,21 +31,24 @@ import com.prueba.marvel.data.Constants.Companion.CHARACTER_NAME_SEARCH_PAGE_REQ
 import com.prueba.marvel.data.Constants.Companion.CHARACTER_NAME_SEARCH_REQUEST
 import com.prueba.marvel.data.Constants.Companion.LIST_REQUEST_OVERSCROLL_LIMIT
 import com.prueba.marvel.data.Constants.Companion.LIST_REQUEST_STARTING_LIMIT
+import com.prueba.marvel.data.MarvelViewModel
+import com.prueba.marvel.fragments.CharacterDetailFragment
+import com.prueba.marvel.interfaces.CharacterListListener
 import java.security.MessageDigest
 import java.util.*
 
 
 class MainActivity : AppCompatActivity(), CharacterListListener {
 
-    lateinit var viewModel : MarvelViewModel
+    private lateinit var viewModel : MarvelViewModel
     lateinit var progressBar: ContentLoadingProgressBar
-    lateinit var tvMessage: TextView
-    lateinit var characterListAdapter: CharacterListAdapter
-    lateinit var rvCharacters: RecyclerView
+    private lateinit var tvMessage: TextView
+    private lateinit var characterListAdapter: CharacterListAdapter
+    private lateinit var rvCharacters: RecyclerView
 
     var filterAvailable = false
-    var searchAvailable = true
-    var filtered = false
+    private var searchAvailable = true
+    private var filtered = false
     var loading = false
     var searching = false
     var showingDetail = false
@@ -103,7 +105,6 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             )
         }
 
-//        viewModel.rqstString = baseUrl
         Log.i("MARVEL-REQUEST", baseUrl)
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  viewModel.processCharacterListResponse(response, this)
@@ -130,7 +131,6 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             )
         }
 
-//        viewModel.rqstString = baseUrl
         Log.i("MARVEL-REQUEST", baseUrl)
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  viewModel.processCharacterListResponse(response, this)
@@ -158,7 +158,6 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             )
         }
 
-//        viewModel.rqstString = baseUrl
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  onCharacterResponse(response)
         },
@@ -259,7 +258,8 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     override fun onCharacterSearchComplete() {
 
         if(viewModel.currentSearchOffset >= viewModel.totalSearchCharacters){
-            characterListAdapter = CharacterListAdapter(viewModel.searchCharacterList!!
+            characterListAdapter = CharacterListAdapter(
+                viewModel.searchCharacterList
                 , LayoutInflater.from(applicationContext), this@MainActivity)
             val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
             rvCharacters.layoutManager = layoutManager
@@ -326,7 +326,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     private fun initUI(){
         progressBar = findViewById(R.id.pb_progress_bar)
 
-        rvCharacters = findViewById<RecyclerView>(R.id.rv_character_list)
+        rvCharacters = findViewById(R.id.rv_character_list)
         rvCharacters.addOnScrollListener(object : RecyclerView.OnScrollListener(){
             override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
 
@@ -374,7 +374,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     private fun filterList(filterString: String) {
         if (filterString.isNotEmpty()) {
             filtered = true
-            viewModel.filteredCharacterList = ArrayList<CharacterResult>()
+            viewModel.filteredCharacterList = ArrayList()
             for (character in viewModel.characterList!!) {
                 if (character.name!!.toLowerCase(Locale.getDefault())
                         .contains(filterString.toLowerCase(Locale.getDefault()))) {
@@ -435,7 +435,6 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             )
         }
 
-//        viewModel.rqstString = baseUrl
         Log.i("MARVEL-REQUEST", baseUrl)
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  viewModel.processCharacterNameSearchResponse(response, this)

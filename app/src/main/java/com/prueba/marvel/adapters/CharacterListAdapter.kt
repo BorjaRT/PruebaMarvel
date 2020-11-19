@@ -11,8 +11,8 @@ import com.prueba.marvel.model.CharacterResult
 
 class CharacterListAdapter(
     var characters: ArrayList<CharacterResult>,
-    var inflater: LayoutInflater?,
-    var listener: CharacterListListener
+    private var inflater: LayoutInflater?,
+    private var listener: CharacterListListener
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {

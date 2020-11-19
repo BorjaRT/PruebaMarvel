@@ -10,9 +10,9 @@ import com.prueba.marvel.interfaces.CharacterListener
 import com.prueba.marvel.model.Item
 
 class ComicsListAdapter(
-    var comics: ArrayList<Item>,
-    var inflater: LayoutInflater?,
-    var listener: CharacterListener
+    private var comics: ArrayList<Item>,
+    private var inflater: LayoutInflater?,
+    private var listener: CharacterListener
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {

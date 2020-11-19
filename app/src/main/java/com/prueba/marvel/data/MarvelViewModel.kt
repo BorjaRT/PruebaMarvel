@@ -15,15 +15,14 @@ class MarvelViewModel : ViewModel() {
     var characterList: ArrayList<CharacterResult>? = null
     var characterDetail: MutableLiveData<CharacterResult>? = null
     lateinit var filteredCharacterList: ArrayList<CharacterResult>
-    var searchCharacterList: ArrayList<CharacterResult> = ArrayList<CharacterResult>()
+    var searchCharacterList: ArrayList<CharacterResult> = ArrayList()
 
     var currentOffset: Int = 0
-    var totalCharacters: Int = 0
+    private var totalCharacters: Int = 0
     var scrollItemCount: Int = 0
     var totalSearchCharacters: Int = 0
     var currentSearchOffset: Int = 0
     lateinit var searchString: String
-//    lateinit var rqstString: String
 
     fun init() {
         characterDetail = MutableLiveData()

@@ -9,10 +9,6 @@
 
     <string name="character_description_header">DESCRIPTION</string>
     <string name="character_comics_header">COMICS AND STORIES</string>
-    <string name="character_series_header">SERIES</string>
-    <string name="character_stories_header">STORIES</string>
-    <string name="character_events_header">EVENTS</string>
-
     <string name="message_no_filter">No matches found</string>
 
     <string name="character_list_error">Something went wrong when loading the character list.</string>

@@ -21,7 +21,7 @@ import com.prueba.marvel.model.Item
 
 class CharacterDetailFragment : Fragment, CharacterListener {
 
-    var fragmentView: View? = null
+    private var fragmentView: View? = null
 
     constructor(viewModel: MarvelViewModel) : super() {
         viewModel.characterDetail!!.observe(this, Observer<Any?> {
