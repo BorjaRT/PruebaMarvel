@@ -189,14 +189,14 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         characterRequest(characterId!!)
     }
 
-    override fun onCharactersLoaded() {
+    override fun onCharactersLoaded(scroll: Boolean) {
         characterListAdapter = CharacterListAdapter(viewModel.characterList!!
             , LayoutInflater.from(applicationContext), this@MainActivity)
         val layoutManager: RecyclerView.LayoutManager = LinearLayoutManager(applicationContext)
         rvCharacters.layoutManager = layoutManager
         rvCharacters.adapter = characterListAdapter
         (rvCharacters.adapter as CharacterListAdapter).notifyDataSetChanged()
-        if(viewModel.currentOffset > LIST_REQUEST_STARTING_LIMIT) {
+        if(viewModel.currentOffset > LIST_REQUEST_STARTING_LIMIT && scroll) {
             rvCharacters.scrollToPosition(viewModel.scrollItemCount - 1)
         }
         progressBar.hide()
@@ -250,6 +250,11 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         findViewById<EditText>(R.id.et_search_input).requestFocus()
         findViewById<ImageView>(R.id.b_search).setOnClickListener {
             doSearch(findViewById<EditText>(R.id.et_search_input).editableText.toString())
+        }
+        findViewById<ImageView>(R.id.b_clear_search).setOnClickListener {
+            findViewById<EditText>(R.id.et_search_input).text.clear()
+            searching = false
+            onCharactersLoaded(false)
         }
         val imm: InputMethodManager =
             getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager

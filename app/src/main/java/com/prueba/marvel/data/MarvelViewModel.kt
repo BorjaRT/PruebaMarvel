@@ -25,7 +25,6 @@ class MarvelViewModel : ViewModel() {
     lateinit var searchString: String
 
     fun init() {
-//        mutableCharacterList = MutableLiveData()
         characterDetail = MutableLiveData()
     }
 
@@ -39,7 +38,7 @@ class MarvelViewModel : ViewModel() {
             characterList!!.addAll(responseObject.data.results)
         }
         currentOffset = characterList!!.size
-        listener.onCharactersLoaded()
+        listener.onCharactersLoaded(true)
     }
 
     fun processCharacterNameSearchResponse(response: String, listener: CharacterListListener){
