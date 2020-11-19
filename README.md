@@ -23,6 +23,9 @@ Hay que tener en cuenta que al realizar la búsqueda (pulsando en la lupa en el 
 
 ## Consideraciones técnicas
 
+- SDK Mínimo: 21
+- SDK Compilación 29
+
 ### Librerías
 
 Debido a que ser realizan peticiones sencillas con todos los datos necesarios para la consulta integrados como parte de la URL de la petición, se ha optado por la librería [**Volley**](https://developer.android.com/training/volley/) para realizar las consultas a servicios.
