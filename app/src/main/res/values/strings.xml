@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Marvel</string>
+    <string name="app_name">Marvel DB</string>
 
     <string name="hint_filter">Filtrar por nombre</string>
     <string name="hint_search">Buscar (inicio de nombre)</string>
@@ -14,4 +14,7 @@
     <string name="character_events_header">EVENTOS</string>
 
     <string name="message_no_filter">Sin conicidencias</string>
+
+    <string name="character_list_error">Se ha producido un error al cargar la lista de personajes. Por favor inténtalo de nuevo más tarde</string>
+    <string name="character_detail_error">Se ha producido un error al cargar la información del personaje. Por favor, inténtalo de nuevo más tarde</string>
 </resources>

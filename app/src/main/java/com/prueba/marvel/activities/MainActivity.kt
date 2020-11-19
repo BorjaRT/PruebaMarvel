@@ -13,8 +13,10 @@ import androidx.core.widget.ContentLoadingProgressBar
 import androidx.lifecycle.ViewModelProviders.of
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.android.volley.NetworkResponse
 import com.android.volley.Request
 import com.android.volley.Response
+import com.android.volley.VolleyError
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
 import com.prueba.marvel.BuildConfig
@@ -44,6 +46,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     lateinit var rvCharacters: RecyclerView
 
     var filterAvailable = false
+    var searchAvailable = true
     var filtered = false
     var loading = false
     var searching = false
@@ -73,7 +76,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
                 true
             }
             R.id.action_search -> {
-                if(findViewById<RelativeLayout>(R.id.ly_search).visibility == View.GONE) {
+                if(searchAvailable && findViewById<RelativeLayout>(R.id.ly_search).visibility == View.GONE) {
                     showSearchPanel()
                     hideFilterPanel()
                 }else{
@@ -100,7 +103,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
                 response ->  viewModel.processCharacterListResponse(response, this)
         },
             Response.ErrorListener {
-                requestError(it.networkResponse.statusCode)
+                characterListRequestError(it.networkResponse)
             }
         )
 
@@ -122,7 +125,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
                 response ->  viewModel.processCharacterListResponse(response, this)
         },
             Response.ErrorListener {
-                requestError(it.networkResponse.statusCode)
+                characterListRequestError(it.networkResponse)
             }
         )
 
@@ -145,7 +148,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
                 response ->  onCharacterResponse(response)
         },
             Response.ErrorListener {
-                requestError(it.networkResponse.statusCode)
+                characterDetailRequestError(it.networkResponse)
             }
         )
 
@@ -169,8 +172,25 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         progressBar.hide()
     }
 
-    private fun requestError(statusCode: Int){
-        Toast.makeText(this, "ERROR:" + statusCode, Toast.LENGTH_SHORT).show()
+    private fun characterListRequestError(networkResponse: NetworkResponse?){
+        //TODO Usar snackbar
+        tvMessage.text = getString(R.string.character_list_error)
+        hideFilterPanel()
+        hideSearchPanel()
+        rvCharacters.visibility = View.GONE
+        tvMessage.visibility = View.VISIBLE
+        searchAvailable = false
+        progressBar.hide()
+    }
+
+    private fun characterDetailRequestError(networkResponse: NetworkResponse?){
+        //TODO Usar snackbar
+        Toast.makeText(this, getString(R.string.character_detail_error), Toast.LENGTH_LONG).show()
+//        tvMessage.text = getString(R.string.character_detail_error)
+//        hideFilterPanel()
+//        hideSearchPanel()
+//        rvCharacters.visibility = View.GONE
+//        tvMessage.visibility = View.VISIBLE
         progressBar.hide()
     }
 
@@ -201,6 +221,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         }
         progressBar.hide()
         filterAvailable = true
+        searchAvailable = true
         loading = false
     }
 
@@ -388,7 +409,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
                 response ->  viewModel.processCharacterNameSearchResponse(response, this)
         },
             Response.ErrorListener {
-                requestError(it.networkResponse.statusCode)
+                characterListRequestError(it.networkResponse)
             }
         )
 
