@@ -7,12 +7,12 @@ import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.TextView
 import android.widget.Toast
-import androidx.core.widget.ContentLoadingProgressBar
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.prueba.marvel.R
+import com.prueba.marvel.activities.MainActivity
 import com.prueba.marvel.adapters.ComicsListAdapter
 import com.prueba.marvel.data.MarvelViewModel
 import com.prueba.marvel.interfaces.CharacterListener
@@ -22,7 +22,6 @@ import com.prueba.marvel.model.Item
 class CharacterDetailFragment : Fragment, CharacterListener {
 
     var fragmentView: View? = null
-//    lateinit var progressBar: ContentLoadingProgressBar
 
     constructor(viewModel: MarvelViewModel) : super() {
         viewModel.characterDetail!!.observe(this, Observer<Any?> {
@@ -39,6 +38,10 @@ class CharacterDetailFragment : Fragment, CharacterListener {
         return fragmentView!!
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        (activity as MainActivity).showingDetail = false
+    }
     private fun loadCharacterData(characterData : CharacterResult, comicsEvents: ArrayList<Item>){
 
         val tvDescription = fragmentView!!.findViewById<TextView>(R.id.tv_description)
@@ -77,8 +80,6 @@ class CharacterDetailFragment : Fragment, CharacterListener {
         image.settings.loadWithOverviewMode = true
         image.settings.useWideViewPort = true
         image.loadUrl(url)
-
-//        fragmentView!!.findViewById<ContentLoadingProgressBar>(R.id.pb_progress_bar).hide()
     }
 
     override fun onComicSelected(resource: String) {

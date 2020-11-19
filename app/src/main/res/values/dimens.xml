@@ -9,4 +9,22 @@
     <dimen name="character_detail_name_size">22sp</dimen>
     <dimen name="character_detail_list_text_size">10sp</dimen>
     <dimen name="comics_header_size">16sp</dimen>
+
+    <!--Main-->
+    <dimen name="character_list_margin">4dp</dimen>
+    <dimen name="message_margin">20dp</dimen>
+
+    <!--Character detail-->
+    <dimen name="character_name_margin">4dp</dimen>
+    <dimen name="character_image_size">160dp</dimen>
+    <dimen name="character_content_margin">4dp</dimen>
+    <dimen name="comic_list_bottom_offset">200dp</dimen>
+
+    <!--Panels-->
+    <dimen name="panel_padding">5dp</dimen>
+    <dimen name="panel_input_padding">4dp</dimen>
+    <dimen name="panel_input_margin">4dp</dimen>
+    <dimen name="panel_button_size">30dp</dimen>
+    <dimen name="panel_button_margin">5dp</dimen>
+    <dimen name="panel_edit_height">40dp</dimen>
 </resources>

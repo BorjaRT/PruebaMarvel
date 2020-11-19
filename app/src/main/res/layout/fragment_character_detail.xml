@@ -7,18 +7,6 @@
     android:clickable="true"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <androidx.core.widget.ContentLoadingProgressBar
-        android:id="@+id/pb_progress_bar"
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        app:layout_constraintRight_toRightOf="parent"
-        android:visibility="visible"
-        android:indeterminate="true"
-        />
-
     <TextView
         android:id="@+id/tv_name"
         android:layout_width="wrap_content"
@@ -29,14 +17,15 @@
         android:textStyle="bold"
         android:textColor="@color/grey"
         android:textSize="@dimen/character_detail_name_size"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginTop="4dp"/>
+        android:layout_marginLeft="@dimen/character_name_margin"
+        android:layout_marginRight="@dimen/character_name_margin"
+        android:layout_marginTop="@dimen/character_name_margin"/>
 
     <View
         android:layout_width="match_parent"
         android:layout_height="160dp"
-        android:layout_marginTop="4dp"
+        android:layout_marginTop="@dimen/character_name_margin"
+        android:layout_marginBottom="@dimen/character_name_margin"
         android:background="@color/grey"
         app:layout_constraintTop_toBottomOf="@+id/tv_name"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -44,10 +33,10 @@
 
     <WebView
         android:id="@+id/wv_image"
-        android:layout_width="160dp"
-        android:layout_height="160dp"
-        android:layout_marginTop="4dp"
-
+        android:layout_width="@dimen/character_image_size"
+        android:layout_height="@dimen/character_image_size"
+        android:layout_marginTop="@dimen/character_name_margin"
+        android:layout_marginBottom="@dimen/character_name_margin"
         app:layout_constraintTop_toBottomOf="@+id/tv_name"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"/>
@@ -70,15 +59,16 @@
                 android:textColor="@color/grey"
                 android:textSize="@dimen/comics_header_size"
                 android:textStyle="bold"
-                android:layout_margin="4dp"
+                android:layout_margin="@dimen/character_content_margin"
                 android:text="@string/character_description_header"/>
 
             <TextView
                 android:id="@+id/tv_description"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="4dp"
-                android:layout_marginRight="4dp"/>
+                android:padding="@dimen/character_content_margin"
+                android:layout_marginLeft="@dimen/character_content_margin"
+                android:layout_marginRight="@dimen/character_content_margin"/>
 
             <TextView
                 android:id="@+id/tv_comics_header"
@@ -87,15 +77,15 @@
                 android:textColor="@color/grey"
                 android:textSize="@dimen/comics_header_size"
                 android:textStyle="bold"
-                android:layout_margin="4dp"
+                android:layout_margin="@dimen/character_content_margin"
                 android:text="@string/character_comics_header"/>
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rv_comics_list"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:layout_marginBottom="200dp"
+                android:layout_marginTop="@dimen/character_content_margin"
+                android:layout_marginBottom="@dimen/comic_list_bottom_offset"
                 android:overScrollMode="never"/>
 
         </LinearLayout>

@@ -50,6 +50,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     var filtered = false
     var loading = false
     var searching = false
+    var showingDetail = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -67,7 +68,8 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_filter -> {
-                if(filterAvailable && findViewById<RelativeLayout>(R.id.ly_filter).visibility == View.GONE) {
+                if(filterAvailable && !showingDetail
+                    && findViewById<RelativeLayout>(R.id.ly_filter).visibility == View.GONE) {
                     showFilterPanel()
                     hideSearchPanel()
                 }else{
@@ -76,7 +78,8 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
                 true
             }
             R.id.action_search -> {
-                if(searchAvailable && findViewById<RelativeLayout>(R.id.ly_search).visibility == View.GONE) {
+                if(searchAvailable && !showingDetail
+                    && findViewById<RelativeLayout>(R.id.ly_search).visibility == View.GONE) {
                     showSearchPanel()
                     hideFilterPanel()
                 }else{
@@ -157,6 +160,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
 
     private fun onCharacterResponse(response: String){
 
+        progressBar.hide()
         viewModel.processCharacterDetailResponse(response)
 
         val fragmentManager = supportFragmentManager
@@ -167,9 +171,10 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         fragmentTransaction.addToBackStack(null)
         fragmentTransaction.commit()
 
+        showingDetail = true
+        searchAvailable = true
         filterAvailable = true
         loading = false
-        progressBar.hide()
     }
 
     private fun characterListRequestError(networkResponse: NetworkResponse?){

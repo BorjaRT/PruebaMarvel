@@ -7,17 +7,17 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_alignParentTop="true"
-    android:padding="5dp">
+    android:padding="@dimen/panel_padding">
 
     <EditText
         android:id="@+id/et_filter_input"
         android:layout_width="match_parent"
-        android:layout_height="40dp"
+        android:layout_height="@dimen/panel_edit_height"
         app:layout_constraintTop_toTopOf="parent"
         android:layout_alignParentLeft="true"
         android:layout_toLeftOf="@+id/b_clean"
-        android:paddingLeft="4dp"
-        android:layout_marginLeft="4dp"
+        android:paddingLeft="@dimen/panel_input_padding"
+        android:layout_marginLeft="@dimen/panel_input_margin"
         android:layout_centerVertical="true"
         android:hint="@string/hint_filter"
         android:background="@android:color/white"
@@ -26,12 +26,12 @@
 
     <ImageView
         android:id="@+id/b_clean"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
+        android:layout_width="@dimen/panel_button_size"
+        android:layout_height="@dimen/panel_button_size"
         android:src="@drawable/ic_close"
         android:layout_alignParentRight="true"
         android:layout_centerVertical="true"
         android:tint="@android:color/white"
-        android:layout_margin="5dp"/>
+        android:layout_margin="@dimen/panel_button_margin"/>
 
 </RelativeLayout>

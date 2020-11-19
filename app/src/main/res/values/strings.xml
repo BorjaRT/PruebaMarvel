@@ -1,20 +1,20 @@
 <resources>
     <string name="app_name">Marvel DB</string>
 
-    <string name="hint_filter">Filtrar por nombre</string>
-    <string name="hint_search">Buscar (inicio de nombre)</string>
+    <string name="hint_filter">Filter by name</string>
+    <string name="hint_search">Search (beginning of name)</string>
 
-    <string name="action_filter_label">Filtro</string>
-    <string name="action_search_label">Buscar</string>
+    <string name="action_filter_label">Filter</string>
+    <string name="action_search_label">Search</string>
 
-    <string name="character_description_header">DESCRIPCIÓN</string>
-    <string name="character_comics_header">CÓMICS E HISTORIAS</string>
+    <string name="character_description_header">DESCRIPTION</string>
+    <string name="character_comics_header">COMICS AND STORIES</string>
     <string name="character_series_header">SERIES</string>
-    <string name="character_stories_header">HISTORIAS</string>
-    <string name="character_events_header">EVENTOS</string>
+    <string name="character_stories_header">STORIES</string>
+    <string name="character_events_header">EVENTS</string>
 
-    <string name="message_no_filter">Sin conicidencias</string>
+    <string name="message_no_filter">No matches found</string>
 
-    <string name="character_list_error">Se ha producido un error al cargar la lista de personajes. Por favor inténtalo de nuevo más tarde</string>
-    <string name="character_detail_error">Se ha producido un error al cargar la información del personaje. Por favor, inténtalo de nuevo más tarde</string>
+    <string name="character_list_error">Something went wrong when loading the character list. Please, try again later</string>
+    <string name="character_detail_error">Something went wrong when loading the character detail. Please, try again later</string>
 </resources>
