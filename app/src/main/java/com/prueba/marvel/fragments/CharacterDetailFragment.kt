@@ -1,12 +1,12 @@
 package com.prueba.marvel.fragments
 
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebView
 import android.widget.TextView
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -83,6 +83,6 @@ class CharacterDetailFragment : Fragment, CharacterListener {
     }
 
     override fun onComicSelected(resource: String) {
-        Toast.makeText(context, resource, Toast.LENGTH_SHORT).show()
+        Log.i("RESOURCE URL:", resource)
     }
 }

@@ -5,7 +5,7 @@ import androidx.lifecycle.ViewModel
 import com.google.gson.Gson
 import com.prueba.marvel.interfaces.CharacterListListener
 import com.prueba.marvel.model.CharacterResult
-import com.prueba.marvel.model.Constants.Companion.LIST_CALL_MAX_LIMIT
+import com.prueba.marvel.data.Constants.Companion.LIST_CALL_MAX_LIMIT
 import com.prueba.marvel.model.Item
 import com.prueba.marvel.model.responses.CharacterRequestResponse
 
@@ -23,6 +23,7 @@ class MarvelViewModel : ViewModel() {
     var totalSearchCharacters: Int = 0
     var currentSearchOffset: Int = 0
     lateinit var searchString: String
+//    lateinit var rqstString: String
 
     fun init() {
         characterDetail = MutableLiveData()

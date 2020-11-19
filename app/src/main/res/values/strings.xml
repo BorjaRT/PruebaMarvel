@@ -15,6 +15,8 @@
 
     <string name="message_no_filter">No matches found</string>
 
-    <string name="character_list_error">Something went wrong when loading the character list. Please, try again later</string>
-    <string name="character_detail_error">Something went wrong when loading the character detail. Please, try again later</string>
+    <string name="character_list_error">Something went wrong when loading the character list.</string>
+    <string name="character_detail_error">Something went wrong when loading the character detail.</string>
+
+    <string name="snack_retry">RETRY</string>
 </resources>

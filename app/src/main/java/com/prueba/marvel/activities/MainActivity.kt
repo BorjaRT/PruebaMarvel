@@ -13,12 +13,11 @@ import androidx.core.widget.ContentLoadingProgressBar
 import androidx.lifecycle.ViewModelProviders.of
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.android.volley.NetworkResponse
 import com.android.volley.Request
 import com.android.volley.Response
-import com.android.volley.VolleyError
 import com.android.volley.toolbox.StringRequest
 import com.android.volley.toolbox.Volley
+import com.google.android.material.snackbar.Snackbar
 import com.prueba.marvel.BuildConfig
 import com.prueba.marvel.R
 import com.prueba.marvel.adapters.CharacterListAdapter
@@ -26,13 +25,13 @@ import com.prueba.marvel.data.MarvelViewModel
 import com.prueba.marvel.fragments.CharacterDetailFragment
 import com.prueba.marvel.interfaces.CharacterListListener
 import com.prueba.marvel.model.CharacterResult
-import com.prueba.marvel.model.Constants.Companion.CHARACTER_DETAIL_REQUEST
-import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_INITIAL_REQUEST
-import com.prueba.marvel.model.Constants.Companion.CHARACTER_LIST_REQUEST
-import com.prueba.marvel.model.Constants.Companion.CHARACTER_NAME_SEARCH_PAGE_REQUEST
-import com.prueba.marvel.model.Constants.Companion.CHARACTER_NAME_SEARCH_REQUEST
-import com.prueba.marvel.model.Constants.Companion.LIST_REQUEST_OVERSCROLL_LIMIT
-import com.prueba.marvel.model.Constants.Companion.LIST_REQUEST_STARTING_LIMIT
+import com.prueba.marvel.data.Constants.Companion.CHARACTER_DETAIL_REQUEST
+import com.prueba.marvel.data.Constants.Companion.CHARACTER_LIST_INITIAL_REQUEST
+import com.prueba.marvel.data.Constants.Companion.CHARACTER_LIST_REQUEST
+import com.prueba.marvel.data.Constants.Companion.CHARACTER_NAME_SEARCH_PAGE_REQUEST
+import com.prueba.marvel.data.Constants.Companion.CHARACTER_NAME_SEARCH_REQUEST
+import com.prueba.marvel.data.Constants.Companion.LIST_REQUEST_OVERSCROLL_LIMIT
+import com.prueba.marvel.data.Constants.Companion.LIST_REQUEST_STARTING_LIMIT
 import java.security.MessageDigest
 import java.util.*
 
@@ -91,67 +90,80 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         }
     }
 
-    private fun characterListRequest() {
+    private fun loadCharacterList(requestString: String?) {
 
         val queue = Volley.newRequestQueue(this)
 
-        val baseUrl = String.format(
-            CHARACTER_LIST_INITIAL_REQUEST, "1", BuildConfig.API_KEY
-            , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
-            , LIST_REQUEST_STARTING_LIMIT.toString()
-        )
+        var baseUrl = requestString
+        if(baseUrl.isNullOrBlank()){
+            baseUrl = String.format(
+                CHARACTER_LIST_INITIAL_REQUEST, "1", BuildConfig.API_KEY
+                , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
+                , LIST_REQUEST_STARTING_LIMIT.toString()
+            )
+        }
 
+//        viewModel.rqstString = baseUrl
         Log.i("MARVEL-REQUEST", baseUrl)
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  viewModel.processCharacterListResponse(response, this)
         },
             Response.ErrorListener {
-                characterListRequestError(it.networkResponse)
+                characterListRequestError(baseUrl)
             }
         )
 
         queue.add(stringRequest)
     }
 
-    private fun loadMoreCharacters(){
+    private fun loadCharactersPage(requestString: String?){
         progressBar.show()
 
         val queue = Volley.newRequestQueue(this)
 
-        val baseUrl = String.format(
-            CHARACTER_LIST_REQUEST, "1", BuildConfig.API_KEY
-            , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
-            , LIST_REQUEST_OVERSCROLL_LIMIT.toString(), viewModel.currentOffset.toString()
-        )
+        var baseUrl = requestString
+        if(baseUrl.isNullOrBlank()){
+            baseUrl = String.format(
+                CHARACTER_LIST_REQUEST, "1", BuildConfig.API_KEY
+                , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
+                , LIST_REQUEST_OVERSCROLL_LIMIT.toString(), viewModel.currentOffset.toString()
+            )
+        }
+
+//        viewModel.rqstString = baseUrl
         Log.i("MARVEL-REQUEST", baseUrl)
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  viewModel.processCharacterListResponse(response, this)
         },
             Response.ErrorListener {
-                characterListRequestError(it.networkResponse)
+                characterListPageRequestError(baseUrl)
             }
         )
 
         queue.add(stringRequest)
     }
 
-    private fun characterRequest(characterId: String){
+    private fun characterRequest(characterId: String?, requestString: String?){
         loading = true
         filterAvailable = false
         progressBar.show()
 
         val queue = Volley.newRequestQueue(this)
 
-        val baseUrl = String.format(
-            CHARACTER_DETAIL_REQUEST, characterId, "1", BuildConfig.API_KEY
-            , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
-        )
+        var baseUrl = requestString
+        if(baseUrl.isNullOrBlank()){
+            baseUrl = String.format(
+                CHARACTER_DETAIL_REQUEST, characterId, "1", BuildConfig.API_KEY
+                , calculateHash("1", BuildConfig.API_KEY, BuildConfig.PRIVATE_KEY)
+            )
+        }
 
+//        viewModel.rqstString = baseUrl
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  onCharacterResponse(response)
         },
             Response.ErrorListener {
-                characterDetailRequestError(it.networkResponse)
+                characterDetailRequestError(baseUrl)
             }
         )
 
@@ -177,25 +189,39 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         loading = false
     }
 
-    private fun characterListRequestError(networkResponse: NetworkResponse?){
-        //TODO Usar snackbar
-        tvMessage.text = getString(R.string.character_list_error)
-        hideFilterPanel()
-        hideSearchPanel()
-        rvCharacters.visibility = View.GONE
-        tvMessage.visibility = View.VISIBLE
-        searchAvailable = false
+    private fun characterListRequestError(requestString: String?){
+        Snackbar.make(findViewById(R.id.main_layout), getString(R.string.character_list_error)
+            , Snackbar.LENGTH_LONG).setAction(getString(R.string.snack_retry)){
+            progressBar.show()
+            loadCharacterList(requestString)
+        }.show()
         progressBar.hide()
     }
 
-    private fun characterDetailRequestError(networkResponse: NetworkResponse?){
-        //TODO Usar snackbar
-        Toast.makeText(this, getString(R.string.character_detail_error), Toast.LENGTH_LONG).show()
-//        tvMessage.text = getString(R.string.character_detail_error)
-//        hideFilterPanel()
-//        hideSearchPanel()
-//        rvCharacters.visibility = View.GONE
-//        tvMessage.visibility = View.VISIBLE
+    private fun characterListPageRequestError(requestString: String?){
+        Snackbar.make(findViewById(R.id.main_layout), getString(R.string.character_list_error)
+            , Snackbar.LENGTH_LONG).setAction(getString(R.string.snack_retry)){
+            progressBar.show()
+            loadCharactersPage(requestString)
+        }.show()
+        progressBar.hide()
+    }
+
+    private fun characterDetailRequestError(requestString: String?){
+        Snackbar.make(findViewById(R.id.main_layout), getString(R.string.character_detail_error)
+            , Snackbar.LENGTH_LONG).setAction(getString(R.string.snack_retry)){
+            progressBar.show()
+            characterRequest(null, requestString)
+        }.show()
+        progressBar.hide()
+    }
+
+    private fun characterSearchRequestError(searchString: String){
+        Snackbar.make(findViewById(R.id.main_layout), getString(R.string.character_list_error)
+            , Snackbar.LENGTH_LONG).setAction(getString(R.string.snack_retry)){
+            progressBar.show()
+            doSearch(searchString)
+        }.show()
         progressBar.hide()
     }
 
@@ -211,7 +237,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
     }
 
     override fun onCharacterSelected(characterId: String?) {
-        characterRequest(characterId!!)
+        characterRequest(characterId!!, null)
     }
 
     override fun onCharactersLoaded(scroll: Boolean) {
@@ -314,7 +340,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
                         progressBar.show()
                         loading = true
                         filterAvailable = false
-                        loadMoreCharacters()
+                        loadCharactersPage(null)
                     }
                 }
             }
@@ -377,7 +403,7 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
         progressBar.show()
         viewModel = of(this).get(MarvelViewModel::class.java)
         viewModel.init()
-        characterListRequest()
+        loadCharacterList(null)
     }
 
     private fun doSearch(searchString: String){
@@ -409,12 +435,13 @@ class MainActivity : AppCompatActivity(), CharacterListListener {
             )
         }
 
+//        viewModel.rqstString = baseUrl
         Log.i("MARVEL-REQUEST", baseUrl)
         val stringRequest = StringRequest(Request.Method.GET, baseUrl, Response.Listener<String> {
                 response ->  viewModel.processCharacterNameSearchResponse(response, this)
         },
             Response.ErrorListener {
-                characterListRequestError(it.networkResponse)
+                characterSearchRequestError(searchString)
             }
         )
 
